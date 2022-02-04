@@ -1,8 +1,11 @@
 // Stylesheet
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
+import Header from "./components/Header/Header";
+import SignInOrSignUp from "./components/SignInOrSignUp/SignInOrSignUp";
 
 // Component import
-import CarsInfoList from "./components/CarsInfoList/CarsInfoList";
+import TodoList from "./components/TodoList/TodoList";
 
 // Inside the return we call the <link> tag at the top
 // level with bootstrap links to ensure the entire app
@@ -16,7 +19,12 @@ function App() {
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
         crossOrigin="anonymous"
       />
-      <CarsInfoList />
+
+      <Header />
+      <Routes>
+        <Route path="/" element={<TodoList />} />
+        <Route path="/signIn" element={<SignInOrSignUp />} />
+      </Routes>
     </div>
   );
 }

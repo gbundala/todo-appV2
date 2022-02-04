@@ -1,0 +1,20 @@
+.header-wrapper {
+  position: sticky;
+  top: 0;
+  isolation: isolate;
+  z-index: 100;
+}
+
+.nav-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: rgba(0, 0, 0, 0.55);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+
+.nav-item:focus,
+.nav-item:hover {
+  color: rgba(0, 0, 0, 0.7);
+}

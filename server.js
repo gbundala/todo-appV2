@@ -5,6 +5,13 @@
 // Import the express library
 const express = require("express");
 
+// Import environment variables for use in the MongoDB URL to
+// connect to the database. Where we need to enter the username
+// and password.
+// the .env file is also included in the .gitignore file to
+// avoid the unauthorized access to the credentials
+require("dotenv").config();
+
 // Import Helmet library for security
 const helmet = require("helmet");
 
@@ -143,8 +150,15 @@ app.listen(PORT, function () {
  *
  */
 
+// Plug out the custom variables from the .env file
+// These are being used below in order to hide my
+// credential from access to any other person who
+// may have access to this code reposity. Hence for security
+const { MONGODB_USERNAME } = process.env;
+const { MONGODB_PASSWORD } = process.env;
+
 // MONGOOSE CONNECTION
-const uri = `mongodb+srv://gbundala-hyperion:3Lfjmqs2XF6LN8D@hyperion-dev-l3.0qthg.mongodb.net/carsTask?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/carsTask?retryWrites=true&w=majority`;
 mongoose.Promise = global.Promise;
 
 // NOTE: useMongoClient option is not longer necessary (and it
