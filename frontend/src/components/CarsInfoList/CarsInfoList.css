@@ -1,0 +1,24 @@
+.main-wrapper {
+  padding: 24px;
+}
+
+.cars-details-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.select-wrapper {
+  display: flex;
+  gap: 16px;
+  max-width: 90%;
+}
+
+.search-old-cars {
+  min-width: fit-content;
+}
+
+.modified-documents {
+  font-family: "Courier New", Courier, monospace;
+  color: rgb(84, 111, 112);
+}

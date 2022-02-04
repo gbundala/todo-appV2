@@ -1,0 +1,34 @@
+/* The !important declarations is necessary in order to
+    override the bootstrap styles with differing levels
+    of specificity which make the custom styles not appearing*/
+
+.card-style {
+  width: 17rem !important;
+}
+
+.buttons-wrapper {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  visibility: hidden;
+}
+
+.card-style:hover .buttons-wrapper {
+  visibility: visible;
+}
+
+.delete-button:hover {
+  background-color: rgb(202, 74, 74) !important;
+  color: white !important;
+}
+
+.edit-button:focus {
+  background-color: rgb(89, 148, 109) !important;
+  color: white !important;
+}
+
+.card-title {
+  margin-bottom: 2rem !important;
+}

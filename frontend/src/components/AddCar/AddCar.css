@@ -1,0 +1,17 @@
+.add-car-wrapper {
+  border: 3px solid rgb(235, 239, 240);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+  max-width: 90%;
+}
+
+.add-car-title {
+  color: rgb(192, 200, 201);
+  text-align: left;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+}
