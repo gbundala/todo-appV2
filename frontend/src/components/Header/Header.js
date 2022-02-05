@@ -27,7 +27,7 @@ export default function Header() {
         <Container fluid>
           <Navbar.Brand>
             <Link className="nav-item" to="/">
-              iTunesSearcher
+              TodoList!!
             </Link>
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="navbarScroll" />
@@ -44,8 +44,8 @@ export default function Header() {
                 </Link>
               </Nav.Item>
               <Nav.Item>
-                <Link className="nav-item" to="/favourites">
-                  Favourites
+                <Link className="nav-item" to="/signUp">
+                  Sign Up
                 </Link>
               </Nav.Item>
             </Nav>

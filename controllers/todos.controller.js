@@ -1,6 +1,6 @@
 /**
  *
- * CARS CONTROLLER
+ * TODO LIST CONTROLLER
  *
  * Here we define all the CRUD operations operations in the
  * callback functions that will be called when the route
@@ -15,37 +15,49 @@
  * the data in the MongoDB database through the documents which
  * are instances of models.
  *
+ * Design & Architecture of the Database:
+ *
+ * The database is designed such that there is one collection
+ * that will store documents that contain all the user information
+ * as well as the todos items.
+ *
+ * Quering the database is therefore done through finding
+ * documents that relate to the authenticated user and only
+ * returning that single document, or where the client has
+ * made a request to edit or update that document.
+ *
+ *
  */
 
-// Import the Cars model from the model file
-const Cars = require("../models/cars.model");
+// Import the Todos model from the model file
+const Todos = require("../models/todos.model");
 
 /* 
-    1. Adding a car to the cars collection.
+    1. Adding a new User to the todos collection.
     ------------------------------------------------------------
 */
 
-// Creating a new car in the database
-exports.createCar = function (req, res) {
-  // Grab the new car object from the body
-  const newCar = req.body;
+// Creating a new User in the database
+exports.createUser = function (req, res) {
+  // Grab the new User object from the body
+  const newUser = req.body;
 
-  // Create and Save a new car using the Car Model constructor
+  // Create and Save a new User using the Todos Model constructor
   // and passing in the Object received from the body of the
   // request
-  let carModel = new Cars({
-    ...newCar,
+  let todosModel = new Todos({
+    ...newUser,
   });
 
-  // Calling the save method to create the Car
-  carModel.save(function (err, doc) {
+  // Calling the save method to create the User
+  todosModel.save(function (err, doc) {
     if (err) {
       console.log(err);
       res.status(500).send({
-        message: "Oops! There is an error in adding the car to the database.",
+        message: "Oops! There is an error in adding the User to the database.",
       });
     } else {
-      console.log("Yay! New car has been added to database!!", doc);
+      console.log("Yay! New User has been added to database!!", doc);
       res.send(doc);
     }
   });
@@ -55,6 +67,9 @@ exports.createCar = function (req, res) {
     2. Updating information about a single car.
     ------------------------------------------------------------
 */
+
+// TODO: Here while adding/ updating todos ensure that we have the iD generator function being called here to have each element of the array as an objet with id and data: You need to rectify the Schema Model (or maybe not as we are accepting any array okey -- but try to ensure strictness of model for maintainability though dont sweat over it )
+// Recall the ID from one of the past tasks
 
 exports.updateSingleCar = function (req, res) {
   // Grab the id of the car to be updated in the req params

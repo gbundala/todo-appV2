@@ -1,6 +1,8 @@
 /**
  *
- * CARS MODEL
+ * TODO LIST MODEL
+ *
+ * FIXME: USE BCRYPT FOR PASSWORDS
  *
  * Here we define the schema to work with Mongoose.
  * We defined all the fields that will go into the documents
@@ -16,42 +18,39 @@
 // Import the mongoose library
 const mongoose = require("mongoose");
 
-// Define the CarsSchema to be used to specify the compilation
-// of the Cars model below
-let CarsSchema = mongoose.Schema({
-  model: {
-    type: Number,
-    required: true,
-  },
-  make: {
+// Define the TodosSchema to be used to specify the compilation
+// of the Todo List model below
+let TodosSchema = mongoose.Schema({
+  username: {
     type: String,
     required: true,
   },
-  color: {
+  password: {
     type: String,
     required: true,
   },
-  registrationNumber: {
+  firstName: {
     type: String,
     required: true,
   },
-  owner: {
+  lastName: {
     type: String,
     required: true,
   },
-  address: {
-    type: String,
+  todoList: {
+    type: mongoose.Schema.Types.Array,
     required: false,
-    default: "unknown",
+    default: [],
   },
 });
 
-// We create the Cars model by calling the model() method from the
-// mongoose library and specify the name of the model "Cars" as
-// well as the Schema Object "CarsSchema" defined above
+// We create the TodoList model by calling the model()
+// method from the
+// mongoose library and specify the name of the model "Todos" as
+// well as the Schema Object "TodosSchema" defined above
 // Documents created in the MongoDB database would represent
 // instances of this model and any action to the documents
 // are handled by this model
 // In essence the model created below is special constructor
 // that is compiled based on the above defined schema
-module.exports = mongoose.model("Cars", CarsSchema);
+module.exports = mongoose.model("Todos", TodosSchema);

@@ -7,8 +7,9 @@ const express = require("express");
 
 // Import environment variables for use in the MongoDB URL to
 // connect to the database. Where we need to enter the username
-// and password.
-// the .env file is also included in the .gitignore file to
+// and password. npm: https://www.npmjs.com/package/dotenv
+
+// The .env file is also included in the .gitignore file to
 // avoid the unauthorized access to the credentials
 require("dotenv").config();
 
@@ -158,7 +159,7 @@ const { MONGODB_USERNAME } = process.env;
 const { MONGODB_PASSWORD } = process.env;
 
 // MONGOOSE CONNECTION
-const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/carsTask?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/todos?retryWrites=true&w=majority`;
 mongoose.Promise = global.Promise;
 
 // NOTE: useMongoClient option is not longer necessary (and it
