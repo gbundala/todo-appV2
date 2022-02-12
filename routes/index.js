@@ -5,15 +5,18 @@ const express = require("express");
 // on the express library
 const apiRouter = express.Router();
 
-// Import the todos controller
-const todos = require("../controllers/todos.controller.js");
+// Import the user controller
+const user = require("../controllers/user.controller.js");
 
 // ROUTERS
 
-// 1. POST Request to add a new User to the todos collection
-apiRouter.post("/addNewUser", todos.createUser);
+// 1. POST Request to add a new User to the Users collection
+apiRouter.post("/signup", user.createUser);
 
-// 2. PUT Request to Update Information about a Single Car
+// 2. POST Request to signin a User
+apiRouter.post("/signin", user.userSignIn);
+
+// 3. PUT Request to Update Information about a Single Car
 // apiRouter.put("/updateSingleCar/:id", cars.updateSingleCar);
 
 // 3. PUT Request to Update Information on Multiple Cars

@@ -159,12 +159,12 @@ const { MONGODB_USERNAME } = process.env;
 const { MONGODB_PASSWORD } = process.env;
 
 // MONGOOSE CONNECTION
-const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/todos?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/TodoList?retryWrites=true&w=majority`;
 mongoose.Promise = global.Promise;
 
-// NOTE: useMongoClient option is not longer necessary (and it
-// creates an error) since mongoose 5.x, hence ommited here
-// https://stackoverflow.com/questions/48031029/the-options-usemongoclient-is-not-supported
+// NOTE: useMongoClient option is no longer necessary (and it
+// causes an error) since mongoose 5.x, hence ommited here
+// Resource: https://stackoverflow.com/questions/48031029/the-options-usemongoclient-is-not-supported
 mongoose.connect(uri);
 
 mongoose.connection.on("error", function (err) {

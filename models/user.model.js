@@ -1,6 +1,6 @@
 /**
  *
- * TODO LIST MODEL
+ * USER MODEL
  *
  * FIXME: USE BCRYPT FOR PASSWORDS
  *
@@ -18,9 +18,14 @@
 // Import the mongoose library
 const mongoose = require("mongoose");
 
-// Define the TodosSchema to be used to specify the compilation
-// of the Todo List model below
-let TodosSchema = mongoose.Schema({
+// Define the UserSchema to be used to specify the compilation
+// of the User model below
+
+// The isAdmin user designation is used to define whether a user
+// has admin priviledges which is however not so much useful to
+// the current simple nature of our application but maybe userful
+// later when we further develop our app to be much more complex
+let UserSchema = mongoose.Schema({
   username: {
     type: String,
     required: true,
@@ -37,6 +42,11 @@ let TodosSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  isAdmin: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   todoList: {
     type: mongoose.Schema.Types.Array,
     required: false,
@@ -44,13 +54,13 @@ let TodosSchema = mongoose.Schema({
   },
 });
 
-// We create the TodoList model by calling the model()
+// We create the User model by calling the model()
 // method from the
-// mongoose library and specify the name of the model "Todos" as
-// well as the Schema Object "TodosSchema" defined above
+// mongoose library and specify the name of the model "User" as
+// well as the Schema Object "UserSchema" defined above
 // Documents created in the MongoDB database would represent
 // instances of this model and any action to the documents
 // are handled by this model
-// In essence the model created below is special constructor
+// In essence the model created below is a special constructor
 // that is compiled based on the above defined schema
-module.exports = mongoose.model("Todos", TodosSchema);
+module.exports = mongoose.model("User", UserSchema);

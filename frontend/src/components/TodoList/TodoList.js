@@ -11,7 +11,7 @@ export default function TodoList() {
   // PUT Request Updated a Document to Create a New Todo Item
   function handleAddTodoItem(newTodoItem) {
     fetch("api/addTodo", {
-      method: "PUP",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
