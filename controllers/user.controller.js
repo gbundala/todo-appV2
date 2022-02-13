@@ -40,6 +40,12 @@ const jwt = require("jsonwebtoken");
 // Import bcrypt to be used to hash passwords
 const bcrypt = require("bcrypt");
 
+// The 'dotenv' library has already been required/imported
+// in server.js and hence accessible here as well.
+// We grab the jwt secret key from the custom environment
+// variable to be used in the jwt signing method below
+const { JWT_SECRET_KEY } = process.env;
+
 // UTILS
 
 // We create a function to generate unique number IDs
@@ -57,19 +63,24 @@ function createUserAuthToken(user) {
   // information is included here. Just information that is
   // relevant to identifiy the user and that is helpful to other
   // parts of the application or the MongoDB database
-  const userPayload = {
-    username: user.username,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    isAdmin: user.isAdmin,
-    _id: user._id.toString(),
+  // We use the spread syntax to pull in the properties and values
+  // into our new object below
+
+  let userPayload = {
+    ...user._doc,
   };
 
-  // The 'dotenv' library has already been required/imported
-  // in server.js and hence accessible here as well.
-  // We grab the jwt secret key from the custom environment
-  // variable to be used in the jwt signing method below
-  const { JWT_SECRET_KEY } = process.env;
+  // Delete the internal properties that are sensitive in the
+  // case of 'password' and that are not relevant user defining
+  // information, in the case of todoList; which may also be very
+  // long and negatively affect performance
+  delete userPayload.password;
+  delete userPayload.todoList;
+
+  // RESOURCE: This resource, provides valuable discussion on
+  // plucking out only a select few of props using the 'spread'
+  // syntax and the 'delete' keyword:
+  // https://stackoverflow.com/questions/56151661/omit-property-variable-when-using-object-destructuring
 
   // We define the authToken variable that will carry the token
   // generated from the signing method.
@@ -140,10 +151,18 @@ exports.createUser = function (req, res) {
       // by passing in the user doc into the method and calling it
       const authToken = createUserAuthToken(doc);
 
+      // Clone the doc
+      let cleanDoc = { ...doc._doc };
+
+      // Delete the password prop
+      delete cleanDoc.password;
+
       // Send the json object to include both the user and the jwt
       // token.
+      // We only send the clean doc which excludes internal
+      // properties such as the password
       res.send({
-        user: doc,
+        user: cleanDoc,
         token: authToken,
       });
     }
@@ -185,6 +204,12 @@ exports.userSignIn = function (req, res) {
         if (err) throw err;
 
         if (!same) {
+          // We respond with error 404: 'Not Found' as we don't
+          // to provide a clue to the client on what exactly is
+          // the authentication issue, hence for better security
+          // since we don't place any trust to the client as
+          // hackers can easily mask themselves and try to gain
+          // priviledged access
           res.status(404).send({
             error: true,
             message: "Oops! The username or password entered is not correct!",
@@ -218,92 +243,166 @@ exports.userSignIn = function (req, res) {
 };
 
 /* 
-    3. Updating information about a single car.
+    3. Updating User document when user adds adds a new Todo Item
     ------------------------------------------------------------
 */
 
-// TODO: Here while adding/ updating todos ensure that we have the iD generator function being called here to have each element of the array as an objet with id and data: You need to rectify the Schema Model (or maybe not as we are accepting any array okey -- but try to ensure strictness of model for maintainability though dont sweat over it )
-// Recall the ID from one of the past tasks
+// Here while adding/ updating todos we ensure that we have the
+// ID generator function being called here to have each element
+// of the array as an objet with todoId and data
 
-exports.createNewTodoItem = function (req, res) {
-  // Call the method above to create a unique id to store in the
-  // User document
-  const id = createNewID();
+exports.addNewTodoItem = function (req, res) {
+  // Call the method above to create a unique id for each
+  // todoItem that is added to the array to store in the
+  // User document for each element of the Todos List
+  // We then set the value of the newTodoItem to be an object
+  // that contains the newly created unique ID and the contents
+  // of the todoItem object that is received from the client
+  // through the body of the request
+  const newTodoItemId = createNewID();
+  const newTodoItem = { todoId: newTodoItemId, todoItem: req.body.todoItem };
 
-  // Grab the todo List array from the body of the request
-  // and assign it to the variable. We will then store the
-  // array in the User document in the MongoDB database
-  const todoListArray = req.body;
+  // FIXME: DELETE LOG
+  console.log(newTodoItem);
 
-  // TODO: WAHAT ARE WE SENDING to the sever to identify the user doc??
-  // TODO: In this case there is a need to have the user _id being sent from the front end to the server to be able to identify which object to update hence we must implement JWT before this one -- ie we must authenticate the user before we are able to deal with this part of adding TODolist array to the user Document -- also update the model from Todos model to User model as we are basically dealing with the user and not the toodos in general in the documents
+  // Grab the id of the User
+  const id = req.body._id;
 
-  // TODO: update below
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
+
   // We use the id field in the query filter to update the docs
   // The ids are uniquely generated by MongoDB upon doc creation
   // Hence we ensure that we update the correct doc
   // We set the 'new: true' option to return the updated doc
   // Also included the '$set' update operator to ensure we don't
-  // overwrite any field not updated
+  // overwrite any field that has not been updated
+  // Hint: We define the callback function to an async function
+  // in order to be able to user the 'await' keyword inside it
+  jwt.verify(authToken, JWT_SECRET_KEY, async function (err, user) {
+    // FIXME: DELETE CONSOLE.LOG
+    console.log(user);
 
-  // The findByIdAndUpdate provides much better Developer
-  // Experience and maintainability of the code than
-  // findOneAndUpdate
-  // Reference: https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // Find the document that includes the todoList. The aim
+      // here is to ensure we grab the latest copy of the todoList
+      // to be able to use it in the method below
+      const userDoc = await User.findById(id).exec();
 
-  Cars.findByIdAndUpdate(
-    id,
-    { $set: { ...updatedFields } },
-    { new: true },
-    function (err, doc) {
-      if (err) {
-        console.log("Oops! Something went wrong when updating data!");
-        res.send("ERROR: Car has Not been Updated. " + err);
-      }
-      console.log("Yay! Car has been Updated!!", doc);
+      // Call the method method to be able to update the User doc
+      // with the new todoItem inside the todoList
+      User.findByIdAndUpdate(
+        id,
+        { $set: { todoList: [...userDoc.todoList, newTodoItem] } },
+        { new: true },
+        function (err, doc) {
+          if (err) {
+            console.log("Oops! Something went wrong when updating data!");
+            res.send("ERROR: TodoList has Not been Updated. " + err);
+          }
+          console.log("Yay! New Todo Item has been Added!!", doc);
 
-      // We send back to the frontend the document/object that
-      // has been updated in order to replace it out from the
-      // array/state in UI and re-render.
-      res.send(doc);
+          // We send back to the frontend the document/object that
+          // has been updated in order to replace it out from the
+          // array/state in UI and re-render.
+          // Before sending back the entire document we clean it
+          // by removing internal sensitive props such as the
+          // password
+
+          // Clone the doc
+          let cleanDoc = { ...doc._doc };
+
+          // Delete the password prop
+          delete cleanDoc.password;
+
+          // Send the clean doc to the client
+          res.send(cleanDoc);
+        }
+      );
     }
-  );
+  });
 };
 
 /* 
-    3. Updating information about more than one car.
+    4. Updating User document when the user Deletes a Todo item
     ------------------------------------------------------------
 */
 
-exports.updateMultipleCars = function (req, res) {
-  // Grab the info about the filter (field and value)
-  // and store in the query constant
-  const { filterField } = req.body.filter;
-  let { filterValue } = req.body.filter;
+exports.deleteTodoItem = function (req, res) {
+  // Grab the id of the User and the todoId
+  const id = req.body._id;
+  const { todoId } = req.body;
 
-  // if (filterField === "model") {
-  //   filterValue = parseInt(req.body.filter);
-  // }
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
 
-  const queryFilter = { [filterField]: filterValue };
+  // We use the id field in the query filter to update the docs
+  // The ids are uniquely generated by MongoDB upon doc creation
+  // Hence we ensure that we update the correct doc
+  // We set the 'new: true' option to return the updated doc
+  // Also included the '$set' update operator to ensure we don't
+  // overwrite any field that has not been updated
+  // Hint: We define the callback function to an async function
+  // in order to be able to user the 'await' keyword inside it
+  jwt.verify(authToken, JWT_SECRET_KEY, async function (err, user) {
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // Find the document that includes the todoList. The aim
+      // here is to ensure we grab the latest copy of the todoList
+      // to be able to use it in the method below
+      const { todoList } = await User.findById(id).exec();
 
-  // Grab the actual data from the body of the req
-  const updatedFields = req.body.data;
+      // Using the Array.filter() method to loop through the array
+      // and return a new array that Excludes the deleted todoItem
+      const updatedTodoList = todoList.filter((todo) => todo.todoId !== todoId);
 
-  // Updating Multiple docs
-  Cars.updateMany(
-    queryFilter,
-    { $set: { ...updatedFields } },
-    { new: true },
-    function (err, docs) {
-      if (err) {
-        console.log("Oops! Something went wrong when updating data!");
-        res.send("ERROR: Cars have Not been Updated. " + err);
-      }
-      console.log("Yay! The Cars have been Updated!!!", docs);
-      res.send(docs);
+      // Call the method method to be able to update the User doc
+      // with the new todoItem inside the todoList
+      User.findByIdAndUpdate(
+        id,
+        { $set: { todoList: updatedTodoList } },
+        { new: true },
+        function (err, doc) {
+          if (err) {
+            console.log("Oops! Something went wrong when updating data!");
+            res.send("ERROR: TodoList has Not been Updated. " + err);
+          }
+          console.log("Yay! The deleted Todo Item has been Removed!!", doc);
+
+          // We send back to the frontend the document/object that
+          // has been updated in order to replace it out from the
+          // array/state in UI and re-render.
+          // Before sending back the entire document we clean it
+          // by removing internal sensitive props such as the
+          // password
+
+          // Clone the doc
+          let cleanDoc = { ...doc._doc };
+
+          // Delete the password prop
+          delete cleanDoc.password;
+
+          // Send the clean doc to the client
+          res.send(cleanDoc);
+        }
+      );
     }
-  );
+  });
 };
 
 /* 

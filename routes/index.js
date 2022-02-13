@@ -16,14 +16,13 @@ apiRouter.post("/signup", user.createUser);
 // 2. POST Request to signin a User
 apiRouter.post("/signin", user.userSignIn);
 
-// 3. PUT Request to Update Information about a Single Car
-// apiRouter.put("/updateSingleCar/:id", cars.updateSingleCar);
+// 3. PUT Request to Update a User document with the
+// updated todoList array after adding new todoItem
+apiRouter.put("/addTodoItem", user.addNewTodoItem);
 
-// 3. PUT Request to Update Information on Multiple Cars
-// apiRouter.put("/updateMultipleCars", cars.updateMultipleCars);
-
-// 4. DELETE Request to delete a specific document of a car
-// apiRouter.delete("/deleteCar/:id", cars.deleteCar);
+// 4. PUT Request to Update a User document with the updated
+// todoList array after deleting a todoItem
+apiRouter.put("/deleteTodoItem", user.deleteTodoItem);
 
 // 5. GET Request to access the list of all cars
 // apiRouter.get("/", cars.findAllCars);
