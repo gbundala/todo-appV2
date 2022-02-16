@@ -23,7 +23,7 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<TodoList />} />
-        <Route path="/signIn" element={<SignInOrSignUp />} />
+        <Route path="/signup" element={<SignInOrSignUp />} />
       </Routes>
     </div>
   );
