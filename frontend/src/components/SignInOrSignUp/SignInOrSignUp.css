@@ -1,0 +1,7 @@
+.signin-and-signup-wrapper {
+  text-align: left;
+  padding: 32px;
+  max-width: fit-content;
+  display: flex;
+  gap: 16px;
+}

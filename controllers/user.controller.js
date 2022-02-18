@@ -178,6 +178,9 @@ exports.userSignIn = function (req, res) {
   // Plug out the username and password from the body of the request
   // to be used below in accessing the user doc
 
+  // FIXME: DELETE CONSOLE
+  console.log(req.body);
+
   const { username } = req.body;
   const { password } = req.body;
 
@@ -406,39 +409,13 @@ exports.deleteTodoItem = function (req, res) {
 };
 
 /* 
-    4. Deleting a specific document.
+    5. Listing information for the Todos for the specific 
+    authenticated User
     ------------------------------------------------------------
 */
 
-// Deleting a specific document
-// The docs suggests to use findOneAndDelete() over
-// findOneAndRemove().
-// Reference: https://mongoosejs.com/docs/api.html#model_Model.findOneAndDelete
-exports.deleteCar = function (req, res) {
-  // Grab the id of the car to be deleted in the req params
-  const id = String(req.params.id);
-
-  Cars.findByIdAndDelete(id, function (err, doc) {
-    if (err) {
-      console.log("ERROR: Car is NOT Deleted. " + err);
-      res.send("ERROR: Car is NOT Deleted. " + err);
-    }
-    console.log("Yay! The car has been deleted!", doc);
-
-    // We send back to the frontend the document/object that
-    // has been deleted in order to filter it out from the
-    // state in UI and re-render.
-    res.send(doc);
-  });
-};
-
-/* 
-    5. Listing all the information for all cars in the database
-    ------------------------------------------------------------
-*/
-
-// Retrieving all the information for all cars in the database
-exports.findAllCars = function (req, res) {
+// Retrieving all the information for all todos in the database
+exports.getTodos = function (req, res) {
   Cars.find(function (err, carsDocs) {
     if (err) {
       console.log(err);

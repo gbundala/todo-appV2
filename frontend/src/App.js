@@ -1,4 +1,5 @@
 // Stylesheet
+import { useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
@@ -11,6 +12,8 @@ import TodoList from "./components/TodoList/TodoList";
 // level with bootstrap links to ensure the entire app
 // is served with the boostrap styles
 function App() {
+  // Define authToken state variable
+  const [authToken, setAuthToken] = useState("");
   return (
     <div className="App">
       <link
@@ -22,8 +25,18 @@ function App() {
 
       <Header />
       <Routes>
-        <Route path="/" element={<TodoList />} />
-        <Route path="/signup" element={<SignInOrSignUp />} />
+        <Route
+          path="/"
+          element={
+            <TodoList authToken={authToken} setAuthToken={setAuthToken} />
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <SignInOrSignUp authToken={authToken} setAuthToken={setAuthToken} />
+          }
+        />
       </Routes>
     </div>
   );

@@ -24,8 +24,9 @@ apiRouter.put("/addTodoItem", user.addNewTodoItem);
 // todoList array after deleting a todoItem
 apiRouter.put("/deleteTodoItem", user.deleteTodoItem);
 
-// 5. GET Request to access the list of all cars
-// apiRouter.get("/", cars.findAllCars);
+// 5. GET Request to access the list of Todos for an
+// Authenticated user
+apiRouter.get("/", user.getTodos);
 
 // 6. GET Request to access the list of all cars older
 // than 5 years
