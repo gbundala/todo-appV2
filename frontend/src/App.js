@@ -32,7 +32,7 @@ function App() {
           }
         />
         <Route
-          path="/signup"
+          path="/login"
           element={
             <SignInOrSignUp authToken={authToken} setAuthToken={setAuthToken} />
           }

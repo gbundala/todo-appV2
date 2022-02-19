@@ -2,17 +2,24 @@ import React, { useEffect, useState } from "react";
 import TodoInput from "../TodoInput/TodoInput";
 import TodoItem from "../TodoItem/TodoItem";
 
-export default function TodoList() {
+// React Router imports
+import { useNavigate } from "react-router-dom";
+
+export default function TodoList({ authToken, setAuthToken }) {
   // State variables for todoList and the fetching states
   const [todoList, setTodoList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // React router hooks
+  const navigate = useNavigate();
 
   // PUT Request Updated a Document to Create a New Todo Item
   function handleAddTodoItem(newTodoItem) {
     fetch("api/addTodoItem", {
       method: "PUT",
       headers: {
+        Authorization: `Bearer ${authToken.token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newTodoItem),
@@ -58,6 +65,57 @@ export default function TodoList() {
       });
   }
 
+  useEffect(() => {
+    // This variable is useful to determine when to set the
+    // state variable and ensure we don't set it during cleanup
+    let ignoreSettingState = false;
+
+    // Get the authToken from session storage
+    const sessionAuthToken = JSON.parse(sessionStorage.getItem("authToken"));
+
+    // Check if the token does not exist then alert the message
+    // and navigate to the login page
+    if (!sessionStorage) {
+      alert("Please signin or signup before using the TodoList App!");
+
+      // Navigate to the Login page
+      navigate("/login", { replace: true });
+    }
+
+    // GET Request
+    fetch("/api/refresh", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionAuthToken.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sessionAuthToken),
+    })
+      .then((res) => res.json())
+      .then(
+        (data) => {
+          // FIXME: DELETE LOG
+          console.log(data);
+          if (!ignoreSettingState) setAuthToken(data);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          setError(err);
+          setLoading(false);
+          console.error("Error in fetching data: ", err);
+        }
+      );
+
+    // Clean Up
+    return () => {
+      // we set the ignorSettingState variable to true
+      // in order to avoid setting the state variable
+      // when the component is unmounted
+      ignoreSettingState = true;
+    };
+  }, [setAuthToken, navigate]);
+
   // TODO: PRESERVE USER TODO IN SESSION - SESSION STORAGE
   useEffect(() => {
     // This variable is useful to determine when to set the
@@ -66,6 +124,13 @@ export default function TodoList() {
     // to avoid setting the state process when the component
     // is unmounted from the DOM
     let ignoreSettingState = false;
+
+    if (!authToken) {
+      alert("Please signin or signup before using the TodoList App!");
+
+      // Navigate to the Login page
+      navigate("/login", { replace: true });
+    }
 
     // GET Request
 
@@ -78,10 +143,19 @@ export default function TodoList() {
     // Further we parse json() on the response since we receive
     // the data in json format from our Custom API
     // then we set the data in the state variable
-    fetch("/api")
+
+    // TODO: REVIEW THE ?. BELOW
+    fetch(`/api/getTodos/${authToken.user?._id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${authToken.token}`,
+      },
+    })
       .then((res) => res.json())
       .then(
         (data) => {
+          // FIXME: DELETE LOG
+          console.log(data);
           if (!ignoreSettingState) setTodoList(data);
           setLoading(false);
           setError(null);
@@ -102,7 +176,7 @@ export default function TodoList() {
       // exists in the DOM tree
       ignoreSettingState = true;
     };
-  }, []);
+  }, [authToken, navigate]);
 
   return (
     <div>
@@ -111,7 +185,7 @@ export default function TodoList() {
       <div className="todo-list-wrapper">
         {todoList &&
           todoList.map((todoItem) => {
-            return <TodoItem key={todoItem.id} todoItem={todoItem} />;
+            return <TodoItem key={todoItem.todoId} todoItem={todoItem} />;
           })}
       </div>
     </div>

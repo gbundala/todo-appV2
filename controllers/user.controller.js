@@ -254,6 +254,9 @@ exports.userSignIn = function (req, res) {
 // ID generator function being called here to have each element
 // of the array as an objet with todoId and data
 
+// FIXME: WHY DO WE NEED TO RETURN TO THE FRONTEND THE ENTIRE
+// DOC OR RATHER CLEAN DOC. IT IS UNNECESSARY, JUST RETURN THE UPDATED TODOLIST AFTER ADDING OR DELETING A TODO ITEM
+
 exports.addNewTodoItem = function (req, res) {
   // Call the method above to create a unique id for each
   // todoItem that is added to the array to store in the
@@ -298,6 +301,9 @@ exports.addNewTodoItem = function (req, res) {
       // Find the document that includes the todoList. The aim
       // here is to ensure we grab the latest copy of the todoList
       // to be able to use it in the method below
+      // The 'await' keyword is userful here as it ensures that
+      // we get back the user before executing the next line of
+      // code to avoid "race conditions" and the resulting bugs
       const userDoc = await User.findById(id).exec();
 
       // Call the method method to be able to update the User doc
@@ -338,6 +344,9 @@ exports.addNewTodoItem = function (req, res) {
     4. Updating User document when the user Deletes a Todo item
     ------------------------------------------------------------
 */
+
+// FIXME: WHY DO WE NEED TO RETURN TO THE FRONTEND THE ENTIRE
+// DOC OR RATHER CLEAN DOC. IT IS UNNECESSARY, JUST RETURN THE UPDATED TODOLIST AFTER ADDING OR DELETING A TODO ITEM
 
 exports.deleteTodoItem = function (req, res) {
   // Grab the id of the User and the todoId
@@ -416,55 +425,94 @@ exports.deleteTodoItem = function (req, res) {
 
 // Retrieving all the information for all todos in the database
 exports.getTodos = function (req, res) {
-  Cars.find(function (err, carsDocs) {
+  // Grab the id of the User
+  const id = req.params.id;
+
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
+
+  // Calling the jwt.verify method to verify the Identity of
+  // Authenticated user by verifying the authToken
+  jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
     if (err) {
       console.log(err);
-      res.status(500).send({
-        message: "Oops! There is an error in retrieving cars from the database",
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
       });
     } else {
-      res.send(carsDocs);
+      // Call the findById mongoose/MongoDB method
+      User.findById(id, function (err, userDoc) {
+        if (err) {
+          console.log(err);
+          res.status(500).send({
+            message:
+              "Oops! There is an error in retrieving the User todos from the database",
+          });
+        } else {
+          // Send back the just the todoList
+          res.send(userDoc.todoList);
+        }
+      });
     }
   });
 };
 
 /* 
-    6. Listing model, make, registration number and current
-    owner for all cars older than 5 years.
+    6. Getting a refreshed token after the user refreshes the page
      ------------------------------------------------------------
 */
 
-// Listing model, make, registration number and current owner for
-//  all cars older than 5 years in the database
-// We specify the fields that we want to return in the projection
-// part of the parameters. While we define the filter that is of
-// interest, in this case cars with models less than five years
-// ago from the current Year.
-exports.findAllCarsOlderThan5Years = function (req, res) {
-  // We compute the year that is 5 Years Ago from today
-  // We do this formula for maintainability instead of
-  // hardcoding the actual Year which is five years ago
-  const fiveYearsAgo = new Date().getFullYear() - 5;
+exports.refreshToken = function (req, res) {
+  // Grab the token from the body
+  const { token } = req.body;
+  const id = req.body.user._id;
 
-  // Calling the find() method with the arguments
-  Cars.find(
-    { model: { $lt: fiveYearsAgo } },
-    {
-      model: true,
-      make: true,
-      registrationNumber: true,
-      owner: true,
-    },
-    function (err, carsDocs) {
-      if (err) {
-        console.log(err);
-        res.status(500).send({
-          message:
-            "Oops! There is an error in retrieving cars older than 5 years from the database",
-        });
-      } else {
-        res.send(carsDocs);
-      }
+  //
+  jwt.verify(token, JWT_SECRET_KEY, function (err, user) {
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // Calling the findById() method with the arguments
+      User.findById(id, function (err, doc) {
+        if (err) {
+          console.log(err);
+          res.status(500).send({
+            message: "Oops! There is an error in retrieving token for the user",
+          });
+        } else {
+          console.log(
+            "Yay! We have successfully refreshed the auth token!!",
+            doc
+          );
+
+          // Generate the auth token using the method defined above
+          // by passing in the user doc into the method and calling it
+          const authToken = createUserAuthToken(doc);
+
+          // Clone the doc
+          let cleanDoc = { ...doc._doc };
+
+          // Delete the password prop
+          delete cleanDoc.password;
+
+          // Send the json object to include both the user and the jwt
+          // token.
+          // We only send the clean doc which excludes internal
+          // properties such as the password
+          res.send({
+            user: cleanDoc,
+            token: authToken,
+          });
+        }
+      });
     }
-  );
+  });
 };
