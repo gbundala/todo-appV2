@@ -17,16 +17,25 @@ export default function TodoList({ authToken, setAuthToken }) {
 
   // PUT Request Updated a Document to Create a New Todo Item
   function handleAddTodoItem(newTodoItem) {
+    console.log("NEW TODO", newTodoItem);
     fetch("api/addTodoItem", {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${authToken.token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newTodoItem),
+      body: JSON.stringify({
+        _id: authToken.user._id,
+        todoItem: newTodoItem,
+      }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        console.log("response", res);
+        return res.json();
+      })
       .then((data) => {
+        // FIXME: DELETE CONSOLE LOG
+        console.log("DATA FROM ADDING TODO", data);
         // We create a new array that will contain the existing
         // items as well as the newly added item into the database
         // We use the spread '...' syntax to achieve this
@@ -38,7 +47,7 @@ export default function TodoList({ authToken, setAuthToken }) {
         // In addition to the best practice of not mutating state
         // we have also ensured that we only update the added
         // Object that is returned from the database after the
-        // database "UPDATE" operation is complete to ensure the
+        // database "PUT" operation is complete to ensure the
         // consistency of the data/state between UI and database
 
         // Hint: We simply just send the content of new todo item
@@ -55,7 +64,7 @@ export default function TodoList({ authToken, setAuthToken }) {
         // above has finished running due to the state updates
         // being asynchronous (as noted below in the update
         // request handler)
-        setTodoList(updatedTodoList);
+        setTodoList(data.todoList);
         setLoading(false);
         setError(null);
       })
@@ -66,63 +75,6 @@ export default function TodoList({ authToken, setAuthToken }) {
       });
   }
 
-  useEffect(() => {
-    // This variable is useful to determine when to set the
-    // state variable and ensure we don't set it during cleanup
-    let ignoreSettingState = false;
-
-    // Get the authToken from session storage
-    // TODO: Remember to JSON parse this
-    const sessionAuthToken = sessionStorage.getItem("authToken");
-
-    console.log("1st Effect", sessionAuthToken);
-
-    // Check if the token does not exist then alert the message
-    // and navigate to the login page
-    if (!sessionAuthToken) {
-      console.log("if is called");
-      alert("Please signin or signup before using the TodoList App!");
-
-      // Navigate to the Login page
-      navigate("/login", { replace: true });
-      console.log("navigate why not called?");
-    } else {
-      console.log("this place is called");
-      // GET Request
-      fetch("/api/refresh", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${sessionAuthToken.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(sessionAuthToken),
-      })
-        .then((res) => res.json())
-        .then(
-          (data) => {
-            // FIXME: DELETE LOG
-            console.log(data);
-            if (!ignoreSettingState) setAuthToken(data);
-            setLoading(false);
-            setError(null);
-          },
-          (err) => {
-            setError(err);
-            setLoading(false);
-            console.error("Error in fetching data: ", err);
-          }
-        );
-    }
-
-    // Clean Up
-    return () => {
-      // we set the ignorSettingState variable to true
-      // in order to avoid setting the state variable
-      // when the component is unmounted
-      ignoreSettingState = true;
-    };
-  }, [setAuthToken, navigate]);
-
   // TODO: PRESERVE USER TODO IN SESSION - SESSION STORAGE
   useEffect(() => {
     // This variable is useful to determine when to set the
@@ -132,13 +84,12 @@ export default function TodoList({ authToken, setAuthToken }) {
     // is unmounted from the DOM
     let ignoreSettingState = false;
 
-    if (!authToken) {
-      console.log("2nd Effect Called", authToken);
-      alert("Please signin or signup before using the TodoList App!");
+    // Get the authToken from session storage
+    const sessionAuthToken = JSON.parse(sessionStorage.getItem("authToken"));
 
-      // Navigate to the Login page
-      navigate("/login", { replace: true });
-    } else {
+    if (authToken) {
+      // FIXME: DELETE LOG
+      console.log("STATE VARIABLE AUTHTOKEN IS CALLED UNDER FIRST IF");
       // GET Request
 
       // fetching the data from our Custom API which will
@@ -151,7 +102,6 @@ export default function TodoList({ authToken, setAuthToken }) {
       // the data in json format from our Custom API
       // then we set the data in the state variable
 
-      // TODO: REVIEW THE ?. BELOW
       fetch(`/api/getTodos/${authToken.user._id}`, {
         method: "GET",
         headers: {
@@ -162,7 +112,7 @@ export default function TodoList({ authToken, setAuthToken }) {
         .then(
           (data) => {
             // FIXME: DELETE LOG
-            console.log(data);
+            console.log("DATA FROM GET TODOS CALL", data);
             if (!ignoreSettingState) setTodoList(data);
             setLoading(false);
             setError(null);
@@ -173,6 +123,40 @@ export default function TodoList({ authToken, setAuthToken }) {
             console.error("Error in fetching data: ", err);
           }
         );
+    } else if (sessionAuthToken) {
+      // FIXME: DELETE LOG
+      console.log("SESSIONS ELSE IS CALLED");
+      // GET Request
+      fetch("/api/refresh", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionAuthToken.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sessionAuthToken),
+      })
+        .then((res) => res.json())
+        .then(
+          (data) => {
+            // FIXME: DELETE LOG
+            console.log("DATA FROM REFRESH CALL", data);
+            if (!ignoreSettingState) setAuthToken(data);
+            setLoading(false);
+            setError(null);
+          },
+          (err) => {
+            setError(err);
+            setLoading(false);
+            console.error("Error in fetching data: ", err);
+          }
+        );
+    } else {
+      // FIXME: DELETE LOG
+      console.log("LAST ELSE IS CALLED");
+      alert("Please signin or signup before using the TodoList App!");
+
+      // Navigate to the Login page
+      navigate("/login", { replace: true });
     }
 
     // Clean Up
@@ -184,7 +168,7 @@ export default function TodoList({ authToken, setAuthToken }) {
       // exists in the DOM tree
       ignoreSettingState = true;
     };
-  }, [authToken, navigate]);
+  }, [authToken, setAuthToken, navigate]);
 
   return (
     <div>

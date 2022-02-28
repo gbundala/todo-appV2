@@ -30,7 +30,7 @@ apiRouter.get("/getTodos/:id", user.getTodos);
 
 // 6. GET Request to verify the authToken and refresh it
 // when the Browser/client is refreshed
-apiRouter.get("/refresh", user.refreshToken);
+apiRouter.post("/refresh", user.refreshToken);
 
 // Exporting the module
 module.exports = apiRouter;

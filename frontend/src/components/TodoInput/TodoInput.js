@@ -27,6 +27,9 @@ function TodoInput({ handleAddTodoItem }) {
         disabled={!inputText}
         onClick={() => {
           handleAddTodoItem(inputText);
+
+          // Clear the input area
+          setInputText("");
         }}
       >
         Add Todo
