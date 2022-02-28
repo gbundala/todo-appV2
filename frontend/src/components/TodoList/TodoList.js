@@ -11,6 +11,7 @@ export default function TodoList({ authToken, setAuthToken }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  console.log("Do we have value in State:", authToken);
   // React router hooks
   const navigate = useNavigate();
 
@@ -71,41 +72,47 @@ export default function TodoList({ authToken, setAuthToken }) {
     let ignoreSettingState = false;
 
     // Get the authToken from session storage
-    const sessionAuthToken = JSON.parse(sessionStorage.getItem("authToken"));
+    // TODO: Remember to JSON parse this
+    const sessionAuthToken = sessionStorage.getItem("authToken");
+
+    console.log("1st Effect", sessionAuthToken);
 
     // Check if the token does not exist then alert the message
     // and navigate to the login page
-    if (!sessionStorage) {
+    if (!sessionAuthToken) {
+      console.log("if is called");
       alert("Please signin or signup before using the TodoList App!");
 
       // Navigate to the Login page
       navigate("/login", { replace: true });
-    }
-
-    // GET Request
-    fetch("/api/refresh", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${sessionAuthToken.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sessionAuthToken),
-    })
-      .then((res) => res.json())
-      .then(
-        (data) => {
-          // FIXME: DELETE LOG
-          console.log(data);
-          if (!ignoreSettingState) setAuthToken(data);
-          setLoading(false);
-          setError(null);
+      console.log("navigate why not called?");
+    } else {
+      console.log("this place is called");
+      // GET Request
+      fetch("/api/refresh", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionAuthToken.token}`,
+          "Content-Type": "application/json",
         },
-        (err) => {
-          setError(err);
-          setLoading(false);
-          console.error("Error in fetching data: ", err);
-        }
-      );
+        body: JSON.stringify(sessionAuthToken),
+      })
+        .then((res) => res.json())
+        .then(
+          (data) => {
+            // FIXME: DELETE LOG
+            console.log(data);
+            if (!ignoreSettingState) setAuthToken(data);
+            setLoading(false);
+            setError(null);
+          },
+          (err) => {
+            setError(err);
+            setLoading(false);
+            console.error("Error in fetching data: ", err);
+          }
+        );
+    }
 
     // Clean Up
     return () => {
@@ -126,46 +133,47 @@ export default function TodoList({ authToken, setAuthToken }) {
     let ignoreSettingState = false;
 
     if (!authToken) {
+      console.log("2nd Effect Called", authToken);
       alert("Please signin or signup before using the TodoList App!");
 
       // Navigate to the Login page
       navigate("/login", { replace: true });
-    }
+    } else {
+      // GET Request
 
-    // GET Request
+      // fetching the data from our Custom API which will
+      // manage the fetching of the data from the MongoDB database
+      // through the Controllers in the Express App.
 
-    // fetching the data from our Custom API which will
-    // manage the fetching of the data from the MongoDB database
-    // through the Controllers in the Express App.
+      // We then use the endpoints exposed by our restful API
+      // in the fetch method below to manage the returned data
+      // Further we parse json() on the response since we receive
+      // the data in json format from our Custom API
+      // then we set the data in the state variable
 
-    // We then use the endpoints exposed by our restful API
-    // in the fetch method below to manage the returned data
-    // Further we parse json() on the response since we receive
-    // the data in json format from our Custom API
-    // then we set the data in the state variable
-
-    // TODO: REVIEW THE ?. BELOW
-    fetch(`/api/getTodos/${authToken.user?._id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${authToken.token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then(
-        (data) => {
-          // FIXME: DELETE LOG
-          console.log(data);
-          if (!ignoreSettingState) setTodoList(data);
-          setLoading(false);
-          setError(null);
+      // TODO: REVIEW THE ?. BELOW
+      fetch(`/api/getTodos/${authToken.user._id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${authToken.token}`,
         },
-        (err) => {
-          setError(err);
-          setLoading(false);
-          console.error("Error in fetching data: ", err);
-        }
-      );
+      })
+        .then((res) => res.json())
+        .then(
+          (data) => {
+            // FIXME: DELETE LOG
+            console.log(data);
+            if (!ignoreSettingState) setTodoList(data);
+            setLoading(false);
+            setError(null);
+          },
+          (err) => {
+            setError(err);
+            setLoading(false);
+            console.error("Error in fetching data: ", err);
+          }
+        );
+    }
 
     // Clean Up
     return () => {
