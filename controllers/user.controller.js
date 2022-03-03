@@ -26,6 +26,30 @@
  * returning that single document, or where the client has
  * made a request to edit or update that document.
  *
+ * Using Bcrypt to hash passwords saved in the Database:
+ *
+ * We make use of the bcrypt library whic is a popular password
+ * hashing library to hash the passwords before we store them
+ * in the database. This is a key security feature since it
+ * ensures that the user data is safe and sound even in the
+ * unfortunate event of the database being hacked.
+ *
+ * When the user signs in, the bcrypt.compare() method is
+ * used to compare the password entered by the user in the
+ * frontend and hashed password in the database. Only after
+ * the user this process is successful that the authToken
+ * is generated and the user is allowed to sign in the
+ * application
+ *
+ * UTILS
+ *
+ * The utils necessary for the application and being used in
+ * the route methods are defined at the top of this file under
+ * the 'UTILS' title below. The createNewID() method and the
+ * createUserAuthToken() are defined to be used in the methods
+ * that follow below
+ *
+ *
  *
  */
 
@@ -107,9 +131,6 @@ exports.createUser = function (req, res) {
   // Grab the new User object from the body
   const newUser = req.body;
 
-  // FIXME: DELETE LOG
-  console.log(newUser);
-
   // Encrypt the password before storing it in the database
   // using bcrypt hashing algo.
   // We also define the salt rounds to be used in the hashSync
@@ -122,9 +143,6 @@ exports.createUser = function (req, res) {
   const saltRounds = 10;
   const encryptedPassword = bcrypt.hashSync(newUser.password, saltRounds);
 
-  // FIXME: DELETE LOG
-  console.log(encryptedPassword);
-
   // Create and Save a new User using the UserModel constructor
   // and passing in the Object received from the body of the
   // request. Also specifying the password value to the encrypted
@@ -133,9 +151,6 @@ exports.createUser = function (req, res) {
     ...newUser,
     password: encryptedPassword,
   });
-
-  // FIXME: DELETE LOG
-  console.log(userModel);
 
   // Calling the save method to create the new User
   userModel.save(function (err, doc) {
@@ -178,9 +193,6 @@ exports.userSignIn = function (req, res) {
   // Plug out the username and password from the body of the request
   // to be used below in accessing the user doc
 
-  // FIXME: DELETE CONSOLE
-  console.log(req.body);
-
   const { username } = req.body;
   const { password } = req.body;
 
@@ -222,9 +234,12 @@ exports.userSignIn = function (req, res) {
           // by passing in the user doc into the method and calling it
           const authToken = createUserAuthToken(doc);
 
-          // Send the json object to include both the user and the jwt
-          // token.
-          // FIXME: ENSURE YOU DONT RETURN PASSWORD. USE THE CLEAN USER UTIL. SAME FOR THE SIGNUP METHOD CONTROLLER ABOVE. THE BELOW ALREADY SOLVES THIS HENCE NO NEED FOR A COMPLETE UTIL. REPLICATE IT ABOVE
+          // Send the json object to include both the user and the jwt token.
+
+          // We ensure that we don't send the password to the
+          // frontend even if it is hashed already. We therefore
+          // 'clean' the doc by deleting the password prop and
+          // sending to the frontend a clean user doc
 
           // Clone the doc
           let cleanDoc = { ...doc._doc };
@@ -254,8 +269,31 @@ exports.userSignIn = function (req, res) {
 // ID generator function being called here to have each element
 // of the array as an objet with todoId and data
 
-// FIXME: WHY DO WE NEED TO RETURN TO THE FRONTEND THE ENTIRE
-// DOC OR RATHER CLEAN DOC. IT IS UNNECESSARY, JUST RETURN THE UPDATED TODOLIST AFTER ADDING OR DELETING A TODO ITEM
+// SENDING BACK THE DOC TO THE FRONTEND:
+// After each of the actions relating to updating the user doc
+// we make the changes (whether it is adding todo, deleting or
+// editing todos) and then return the updated user doc to the
+// frontend. The frontend then takes the updated todoList and
+// set the state using the React setState update methods to
+// update the UI.
+
+// This approach ensures that the frontend is consistent with
+// the database, hence provides as good UX to the user and
+// maintains integrity of the data and the database.
+
+// In the future, if the app grows bigger and we find that
+// users store significant data in the user doc or we decide
+// to collect more data in the user doc, then the entire
+// backend and database may be redesigned such that we may
+// have collections inside the document and therefore we may
+// need to filter what we need to send to the frontend to avoid
+// latency issues with sending too much data. However that comes
+// with maintenance and depending on the growth of the app or
+// the usage and hence is a pre-mature optimisation for now and
+// therefore unnecessary. However the current structure and design
+// of both the controllers here in the backend API and the
+// database design are designed fully for scalability and
+// flexibility.
 
 exports.addNewTodoItem = function (req, res) {
   // Call the method above to create a unique id for each
@@ -267,9 +305,6 @@ exports.addNewTodoItem = function (req, res) {
   // through the body of the request
   const newTodoItemId = createNewID();
   const newTodoItem = { todoId: newTodoItemId, todoItem: req.body.todoItem };
-
-  // FIXME: DELETE LOG
-  console.log(newTodoItem);
 
   // Grab the id of the User
   const id = req.body._id;
@@ -287,9 +322,6 @@ exports.addNewTodoItem = function (req, res) {
   // Hint: We define the callback function to an async function
   // in order to be able to user the 'await' keyword inside it
   jwt.verify(authToken, JWT_SECRET_KEY, async function (err, user) {
-    // FIXME: DELETE CONSOLE.LOG
-    console.log(user);
-
     if (err) {
       console.log(err);
       res.status(401).send({
@@ -344,9 +376,6 @@ exports.addNewTodoItem = function (req, res) {
     4. Updating User document when the user Deletes a Todo item
     ------------------------------------------------------------
 */
-
-// FIXME: WHY DO WE NEED TO RETURN TO THE FRONTEND THE ENTIRE
-// DOC OR RATHER CLEAN DOC. IT IS UNNECESSARY, JUST RETURN THE UPDATED TODOLIST AFTER ADDING OR DELETING A TODO ITEM
 
 exports.deleteTodoItem = function (req, res) {
   // Grab the id of the User and the todoId
@@ -418,7 +447,88 @@ exports.deleteTodoItem = function (req, res) {
 };
 
 /* 
-    5. Listing information for the Todos for the specific 
+    5. Updating User document when the user Edits a Todo item
+    ------------------------------------------------------------
+*/
+
+exports.editTodoItem = function (req, res) {
+  // Grab the id of the User and the todoId
+  const id = req.body._id;
+  const { todoId, updatedTodoItem } = req.body;
+
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
+
+  // We use the id field in the query filter to update the docs
+  // The ids are uniquely generated by MongoDB upon doc creation
+  // Hence we ensure that we update the correct doc
+  // We set the 'new: true' option to return the updated doc
+  // Also included the '$set' update operator to ensure we don't
+  // overwrite any field that has not been updated
+  // Hint: We define the callback function to an async function
+  // in order to be able to user the 'await' keyword inside it
+  jwt.verify(authToken, JWT_SECRET_KEY, async function (err, user) {
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // Find the document that includes the todoList. The aim
+      // here is to ensure we grab the latest copy of the todoList
+      // to be able to use it in the method below
+      const { todoList } = await User.findById(id).exec();
+
+      // Using the Array.map() method to loop through the array
+      // and return a new array that has the updated value of the
+      // edited/ updated todoItem
+      const updatedTodoList = todoList.map((todo) => {
+        if (todo.todoId === todoId) {
+          todo.todoItem = updatedTodoItem;
+        }
+
+        return todo;
+      });
+
+      // Call the method method to be able to update the User doc
+      // with the new todoItem inside the todoList
+      User.findByIdAndUpdate(
+        id,
+        { $set: { todoList: updatedTodoList } },
+        { new: true },
+        function (err, doc) {
+          if (err) {
+            console.log("Oops! Something went wrong when updating data!");
+            res.send("ERROR: TodoList has Not been Updated. " + err);
+          }
+          console.log("Yay! The Edited Todo Item has been Updated!!", doc);
+
+          // We send back to the frontend the document/object that
+          // has been updated in order to replace it out from the
+          // array/state in UI and re-render.
+          // Before sending back the entire document we clean it
+          // by removing internal sensitive props such as the
+          // password
+
+          // Clone the doc
+          let cleanDoc = { ...doc._doc };
+
+          // Delete the password prop
+          delete cleanDoc.password;
+
+          // Send the clean doc to the client
+          res.send(cleanDoc);
+        }
+      );
+    }
+  });
+};
+
+/* 
+    6. Listing information for the Todos for the specific 
     authenticated User
     ------------------------------------------------------------
 */
@@ -461,7 +571,7 @@ exports.getTodos = function (req, res) {
 };
 
 /* 
-    6. Getting a refreshed token after the user refreshes the page
+    7. Getting a refreshed token after the user refreshes the page
      ------------------------------------------------------------
 */
 
@@ -503,8 +613,8 @@ exports.refreshToken = function (req, res) {
           // Delete the password prop
           delete cleanDoc.password;
 
-          // Send the json object to include both the user and the jwt
-          // token.
+          // Send the json object to include both the user and
+          // the jwt token.
           // We only send the clean doc which excludes internal
           // properties such as the password
           res.send({

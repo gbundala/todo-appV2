@@ -24,11 +24,15 @@ apiRouter.put("/addTodoItem", user.addNewTodoItem);
 // todoList array after deleting a todoItem
 apiRouter.put("/deleteTodoItem", user.deleteTodoItem);
 
-// 5. GET Request to access the list of Todos for an
+// 5. PUT Request to Update a User document with the updated
+// todoList array after editing a todoItem
+apiRouter.put("/editTodoItem", user.editTodoItem);
+
+// 6. GET Request to access the list of Todos for an
 // Authenticated user
 apiRouter.get("/getTodos/:id", user.getTodos);
 
-// 6. GET Request to verify the authToken and refresh it
+// 7. GET Request to verify the authToken and refresh it
 // when the Browser/client is refreshed
 apiRouter.post("/refresh", user.refreshToken);
 

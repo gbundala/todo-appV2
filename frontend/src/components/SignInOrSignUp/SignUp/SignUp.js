@@ -7,7 +7,6 @@ import * as Yup from "yup";
 
 // Bootstrap imports
 import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
@@ -20,7 +19,48 @@ import "./SignUp.css";
 // React Router imports
 import { useNavigate } from "react-router-dom";
 
-export default function SignUp({ authToken, setAuthToken }) {
+/**
+ *
+ * SIGN UP COMPONENT
+ *
+ * This component is mostly a presentational component
+ * with some business logic that communicates to the API to enable
+ * the user to sign up to the application/platform before they
+ * are allowed to do anything on the app. This is basically the
+ * first interation space that the user will have with the
+ * platform.
+ *
+ * This component handles the UI for enabling the user to sign up
+ * but also triggers the event handler defined here to handle
+ * the user signing in. The component calls the fetch method
+ * to make a POST request to create the user document. The
+ * code for creating the doc in the database is handled in the
+ * API server. In this component we just hit the corresponding
+ * route that corresponds to this action in the API.
+ *
+ * USE OF FORMIK LIBRARY:
+ * We make use of the formik library inline with suggestion in the
+ * React Docs to handle forms and make the process a breeze!
+ * Formik enables the coding of complex forms and managing
+ * the ephemeral state of the forms much more focused and gives
+ * a good Developer Experience.
+ *
+ * Another library in use is the Yup library that is normally
+ * used with Formik to provide with the Validation of user input
+ * into the forms.
+ *
+ * USE OF REACT - ROUTER:
+ * The React Router library has also been used here to provide
+ * for the routing in the application. In particular the
+ * useNavigate hook has been particularly useful in this component
+ * to ensure that we navigate to the home page after the user
+ * signs up!
+ *
+ *
+ *
+ */
+
+export default function SignUp({ setAuthToken }) {
   // Hooks
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -53,8 +93,7 @@ export default function SignUp({ authToken, setAuthToken }) {
           return;
         }
 
-        // FIXME: DELETE LOG
-        console.log(values);
+        // call the event handler
         handleUserSigningIn(values);
       },
     });
@@ -70,13 +109,16 @@ export default function SignUp({ authToken, setAuthToken }) {
     })
       .then((res) => res.json())
       .then((data) => {
-        // FIXME: DELETE console
-        console.log("authToken", data);
         // Save the jwt authToken received from the API into the state (you would need to get the state variable from the App.js as we would pass it down)
         setAuthToken(data);
 
-        // Save the jwt authToken received from the API into localSession
-        // TODO: Put here the comment about seesionstorage being advised instead of localStorate. attach the link to the refererence as well
+        // Save the jwt authToken received from the API into
+        // localSession
+        // Here we use sessionStorage instead of localStorage
+        // due to security of the app, to avoid hacks through
+        // methods suchs Cross Site Scripting. Refer to the
+        // comments in the TodoList component for details on
+        // this choice and the reseach made
         sessionStorage.setItem("authToken", JSON.stringify(data));
 
         // Navigate to the home page
@@ -97,6 +139,13 @@ export default function SignUp({ authToken, setAuthToken }) {
     <div className="signup-wrapper">
       <h3>Sign Up</h3>
       <p>Sign up by filling the below details about you!</p>
+
+      {error && (
+        <p className="error-note-wrapper">
+          Something is wrong in signing up! <br />
+          Check your connection & Try again
+        </p>
+      )}
 
       <Form onSubmit={handleSubmit}>
         <FormGroup className="mb-3" controlId="formSignUpUsername">
@@ -177,9 +226,6 @@ export default function SignUp({ authToken, setAuthToken }) {
           Submit
         </Button>
       </Form>
-
-      {/* TODO: SEE HOW TO IMPLMENT SHOWING ERROR */}
-      {/* <h3>{error && error}</h3> */}
     </div>
   );
 }

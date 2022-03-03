@@ -1,19 +1,37 @@
-// Stylesheet
+// react imports
 import { useState } from "react";
-import { Route, Routes } from "react-router-dom";
-import "./App.css";
-import Header from "./components/Header/Header";
-import SignInOrSignUp from "./components/SignInOrSignUp/SignInOrSignUp";
 
-// Component import
+// React router
+import { Route, Routes } from "react-router-dom";
+
+// Stylesheet
+import "./App.css";
+
+// React-bootstrap
+import Header from "./components/Header/Header";
+
+// Child Components import
 import TodoList from "./components/TodoList/TodoList";
+import SignInOrSignUp from "./components/SignInOrSignUp/SignInOrSignUp";
 
 // Inside the return we call the <link> tag at the top
 // level with bootstrap links to ensure the entire app
 // is served with the boostrap styles
+
+// We use the optional chaining (?.) operator in the
+// Header component when passing the user to avoid
+// errors when the user has not yet logged in,
+// hence it just returns undefined.
+// Reference: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+// Reference2: https://www.freecodecamp.org/news/how-the-question-mark-works-in-javascript/
+
+// React Router has been used to provide routing in the frontend
+// application. More details on this in the child components
+// documentation and comments
 function App() {
   // Define authToken state variable
   const [authToken, setAuthToken] = useState("");
+
   return (
     <div className="App">
       <link
@@ -23,7 +41,7 @@ function App() {
         crossOrigin="anonymous"
       />
 
-      <Header />
+      <Header user={authToken.user?.firstName} setAuthToken={setAuthToken} />
       <Routes>
         <Route
           path="/"

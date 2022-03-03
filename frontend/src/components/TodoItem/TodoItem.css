@@ -1,0 +1,22 @@
+.todo-item-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 3px 0;
+}
+
+.todo-item-buttons {
+  display: none;
+}
+
+.todo-item-wrapper:hover .todo-item-buttons {
+  display: flex;
+  gap: 4px;
+  margin: 0 2px;
+}
+
+.form-control-wrapper {
+  max-width: fit-content;
+  outline: 4px solid rgb(130, 172, 130);
+  outline-offset: 1px;
+}

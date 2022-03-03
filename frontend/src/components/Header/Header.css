@@ -18,3 +18,8 @@
 .nav-item:hover {
   color: rgba(0, 0, 0, 0.7);
 }
+
+.welcome-wrapper {
+  color: rgb(97, 146, 137);
+  font-size: 1.3rem;
+}

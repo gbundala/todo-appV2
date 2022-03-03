@@ -1,0 +1,13 @@
+.todo-input-wrapper {
+  margin: 0 auto;
+  margin-bottom: 10px;
+  border: 4px solid rgb(198, 226, 225);
+  padding: 10px;
+  border-radius: 16px;
+  max-width: fit-content;
+}
+
+.form-label-wrapper {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: rgb(112, 90, 60);
+}

@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 
 /**
  *
+ * HEADER:
+ *
  * Header component is mainly for presentational purpose
  * to be able to present the options for the user to
  * easily navigate mainly between the Home page where
@@ -19,8 +21,16 @@ import { Link } from "react-router-dom";
  * The remained components are provided by Boostrap
  * with the good visual from the boostrap library
  * as well as good UI
+ *
+ * On User Signing Out:
+ * We remove clear the React state but we also remove the
+ * authToken from the sessionStorage and navigate the page
+ * back to the sign in page to allow the user to sign in
+ * again.
+ *
+ *
  */
-export default function Header() {
+export default function Header({ user, setAuthToken }) {
   return (
     <div className="header-wrapper">
       <Navbar bg="light" expand="lg" sticky="top">
@@ -37,6 +47,9 @@ export default function Header() {
               style={{ maxHeight: "100px" }}
               navbarScroll
             >
+              <Nav.Item className="welcome-wrapper">
+                {user ? `Welcome ${user}!` : ""}
+              </Nav.Item>
               <Nav.Item>
                 <Link className="nav-item" to="/">
                   {" "}
@@ -44,9 +57,28 @@ export default function Header() {
                 </Link>
               </Nav.Item>
               <Nav.Item>
-                <Link className="nav-item" to="/signUp">
-                  Sign Up
-                </Link>
+                {user ? (
+                  <Link
+                    className="nav-item"
+                    to="/login"
+                    onClick={() => {
+                      // Remove the token from state
+                      setAuthToken("");
+
+                      // Remove the token from session storage
+                      sessionStorage.removeItem("authToken");
+
+                      // Navigate back to the login page as per
+                      // the "to" attribute above.
+                    }}
+                  >
+                    Log Out
+                  </Link>
+                ) : (
+                  <Link className="nav-item" to="/login">
+                    Log In
+                  </Link>
+                )}
               </Nav.Item>
             </Nav>
           </Navbar.Collapse>

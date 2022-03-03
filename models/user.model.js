@@ -2,7 +2,7 @@
  *
  * USER MODEL
  *
- * FIXME: USE BCRYPT FOR PASSWORDS
+ *
  *
  * Here we define the schema to work with Mongoose.
  * We defined all the fields that will go into the documents
@@ -13,6 +13,13 @@
  * each field is expected to carry but also define whether
  * it is required or not and where is not required we define
  * the default value of the field
+ *
+ * USE OF BCRYPT FOR PASSWORDS:
+ * For passwords we have used the bcrpt library to hash the
+ * passwords stored in the database to enhance security.
+ * More details on this and the implementation details in
+ * the user.controller.js file
+ *
  */
 
 // Import the mongoose library

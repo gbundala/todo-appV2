@@ -1,7 +1,7 @@
 {
-  "name": "cars_task7",
+  "name": "todolist_app_v2",
   "version": "1.0.0",
-  "description": "Compulsory Task 7 of the Level 3 HyperionDev Submission",
+  "description": "Compulsory Task 9 of the Level 3 HyperionDev Submission Full Stack Web Dev",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
